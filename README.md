@@ -90,3 +90,7 @@ checkout, so after Music Blocks adds or changes blocks:
 node extract_blocks.cjs ../musicblocks > data/blocks.json
 python knowledge.py ../musicblocks
 ```
+
+## License
+
+GNU Affero General Public License v3 or later, the same as Music Blocks. See `LICENSE`.
