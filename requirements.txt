@@ -1,0 +1,4 @@
+# The versions the server was tested with on 20 Oct 2026.
+fastapi==0.141.1
+uvicorn==0.51.0
+httpx==0.28.1

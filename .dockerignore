@@ -1,0 +1,6 @@
+test_*.py
+extract_blocks.cjs
+*.env
+__pycache__
+.pytest_cache
+.git
