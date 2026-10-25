@@ -17,7 +17,7 @@ computer the widgets look for it at `http://127.0.0.1:8000`.
 | `POST /chat` | Reflection | A reply from one of the three mentors |
 | `POST /analysis` | Reflection | A short report of the chat |
 | `POST /analyze` | AI debugger | A first look at the project, then answers |
-| `POST /fix` | AI debugger | "Fix it for me": the project changed as the chat asked |
+| `POST /fix` | AI debugger | "Change my project": the project changed as the child asked |
 | `POST /make` | AI debugger | "Make a new project" from a description |
 | `GET /health` | | How many requests were answered today |
 
@@ -58,6 +58,56 @@ docker run --env-file mb-server-ai.env -p 8000:8000 mb-server-ai
 Behind a proxy that adds the visitor's address to `X-Forwarded-For` (Caddy does this), the
 limits count each visitor apart.
 
+## Try it with Groq
+
+Sugar Labs runs this on Bedrock, which is why the settings start with `BEDROCK_`, but any
+OpenAI-style API works. Groq gives free keys, so it is the easiest way to try it. You need Python
+3.11 or newer, Node.js 22, git and a key from https://console.groq.com/keys.
+
+Start the server:
+
+```
+git clone https://github.com/sugarlabs/mb-server-ai
+cd mb-server-ai
+pip install -r requirements.txt
+
+export BEDROCK_API_KEY=gsk_your_groq_key
+export BEDROCK_BASE_URL=https://api.groq.com/openai/v1
+export BEDROCK_MODEL=qwen/qwen3.8-27b
+export ALLOWED_ORIGINS=http://127.0.0.1:3000,http://localhost:3000
+uvicorn app:app --port 8000
+```
+
+In another terminal, start Music Blocks:
+
+```
+git clone https://github.com/sugarlabs/musicblocks
+cd musicblocks
+npm install
+npm run serve
+```
+
+Nothing in Music Blocks needs changing. When the page is on `127.0.0.1` or `localhost`, the widgets
+send their requests to port 8000 on the same computer. The debugger's Edit project tab is new in
+sugarlabs/musicblocks#9802, so until that is merged, run `git fetch origin pull/9802/head:ai-widgets`
+and `git checkout ai-widgets` before `npm run serve` to try it.
+
+Then in the browser:
+
+1. Open http://127.0.0.1:3000 and wait for the blocks to load.
+2. Click the Widgets palette on the left.
+3. Drag the "reflection" block or the "debugger" block onto the canvas.
+4. Click the block to run it. Its window opens.
+5. In Reflection, pick a mentor and ask a question. In the debugger, ask about the project in the
+   Chat tab, or open the Edit project tab and try "Change my project" or "Make a new project".
+
+Each request shows up in the server's terminal. If a window says it can't reach the server,
+check that uvicorn is still running on port 8000 and that the page address is in
+`ALLOWED_ORIGINS`.
+
+Groq's free keys allow 8,000 tokens a minute. A big project can use most of that in one request,
+so if Groq says you are over the limit, wait a minute and try again.
+
 ## Settings
 
 | Variable | Default | |
@@ -65,7 +115,7 @@ limits count each visitor apart.
 | `BEDROCK_API_KEY` | none, required | An Amazon Bedrock API key |
 | `ALLOWED_ORIGINS` | the two Music Blocks sites | Comma separated |
 | `BEDROCK_MODEL` | `us.openai.gpt-6-luna` | Any model Bedrock serves through its OpenAI-style API |
-| `BEDROCK_REASONING` | `medium` | For "Fix it for me" and "Make a new project". The other replies have reasoning off, since the widgets give up after 30 seconds |
+| `BEDROCK_REASONING` | `medium` | For "Change my project" and "Make a new project". The other replies have reasoning off, since the widgets give up after 30 seconds |
 | `PER_MINUTE_LIMIT` | 10 | For each visitor |
 | `DAILY_VISITOR_LIMIT` | 100 | For each visitor |
 | `DAILY_REQUEST_LIMIT` | 500 | For everyone together |
